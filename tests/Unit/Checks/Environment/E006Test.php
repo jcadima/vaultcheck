@@ -48,6 +48,16 @@ class E006Test extends TestCase
         $this->assertTrue($results->isEmpty());
     }
 
+    public function test_null_is_not_a_placeholder(): void
+    {
+        // null is a valid Laravel .env convention meaning "disabled" or "use default"
+        foreach (['null', 'none'] as $value) {
+            $context = $this->makeContext(['REDIS_PASSWORD' => $value]);
+            $results = (new E006_PlaceholderValues())->run($context);
+            $this->assertTrue($results->isEmpty(), "'{$value}' should not be treated as a placeholder");
+        }
+    }
+
     private function makeContext(array $envVars): ScanContext
     {
         return new ScanContext(

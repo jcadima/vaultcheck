@@ -22,7 +22,7 @@ trait StrengthHelper
         '/^JWT_/i',
         '/^API_/i',
         '/^STRIPE_/i',
-        '/^AWS_/i',
+        '/^AWS_(ACCESS_KEY_ID|SECRET_ACCESS_KEY|SESSION_TOKEN|SECURITY_TOKEN)$/i',
         '/^GITHUB_/i',
     ];
 

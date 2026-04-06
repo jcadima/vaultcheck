@@ -48,6 +48,25 @@ class C003Test extends TestCase
         $this->assertTrue($results->isEmpty());
     }
 
+    public function test_clean_when_key_is_defined_in_env(): void
+    {
+        // C003 should not fire if the key is already defined in .env — it won't be null at runtime
+        $context = new ScanContext(
+            projectPath:  '/tmp/fake',
+            envVars:      ['STRIPE_KEY' => 'sk_live_real_value'],
+            exampleVars:  [],
+            envFiles:     [],
+            multiEnvVars: [],
+            isProduction: false,
+            codebaseRefs: [
+                'STRIPE_KEY' => [['file' => 'config/services.php', 'line' => 5, 'hasDefault' => false]],
+            ],
+        );
+        $results = (new C003_NoDefaultValue())->run($context);
+
+        $this->assertTrue($results->isEmpty(), 'C003 should not fire when key is already in .env');
+    }
+
     private function makeContext(array $codebaseRefs): ScanContext
     {
         return new ScanContext(

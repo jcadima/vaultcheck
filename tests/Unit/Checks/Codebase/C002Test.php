@@ -29,6 +29,39 @@ class C002Test extends TestCase
         $this->assertStringContainsString('MISSING_KEY', $findings[0]->message);
     }
 
+    public function test_downgrades_to_medium_when_all_usages_have_defaults(): void
+    {
+        $context = $this->makeContext(
+            envVars:      [],
+            codebaseRefs: [
+                'OPTIONAL_KEY' => [['file' => 'config/cache.php', 'line' => 10, 'hasDefault' => true]],
+            ],
+        );
+        $results  = (new C002_ReferencedNotDefined())->run($context);
+        $findings = iterator_to_array($results->getIterator());
+
+        $this->assertSame(1, $results->count());
+        $this->assertSame(Finding::SEVERITY_MEDIUM, $findings[0]->severity);
+    }
+
+    public function test_stays_high_when_any_usage_lacks_default(): void
+    {
+        $context = $this->makeContext(
+            envVars:      [],
+            codebaseRefs: [
+                'REQUIRED_KEY' => [
+                    ['file' => 'config/app.php', 'line' => 5,  'hasDefault' => true],
+                    ['file' => 'config/app.php', 'line' => 20, 'hasDefault' => false],
+                ],
+            ],
+        );
+        $results  = (new C002_ReferencedNotDefined())->run($context);
+        $findings = iterator_to_array($results->getIterator());
+
+        $this->assertSame(1, $results->count());
+        $this->assertSame(Finding::SEVERITY_HIGH, $findings[0]->severity);
+    }
+
     public function test_clean_when_all_referenced_vars_defined(): void
     {
         $context = $this->makeContext(

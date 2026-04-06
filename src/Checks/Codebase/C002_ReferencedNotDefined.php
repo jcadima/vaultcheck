@@ -22,10 +22,18 @@ class C002_ReferencedNotDefined extends BaseCheck
 
         foreach ($context->codebaseRefs as $key => $usages) {
             if (!array_key_exists($key, $context->envVars)) {
+                // If every call site has a fallback default, the app won't crash — downgrade to MEDIUM.
+                // If any call site lacks a default, the variable is genuinely required — keep HIGH.
+                $allHaveDefaults = array_reduce(
+                    $usages,
+                    fn(bool $carry, array $u) => $carry && $u['hasDefault'],
+                    true
+                );
+                $severity   = $allHaveDefaults ? Finding::SEVERITY_MEDIUM : Finding::SEVERITY_HIGH;
                 $firstUsage = $usages[0];
                 $col->add($this->finding(
                     'C002',
-                    Finding::SEVERITY_HIGH,
+                    $severity,
                     "Variable '{$key}' is referenced in code but not defined in .env (first seen: " . basename($firstUsage['file']) . ":{$firstUsage['line']}).",
                     "Add '{$key}=' to .env (and .env.example) with an appropriate value.",
                     $firstUsage['file'],

@@ -34,8 +34,6 @@ class E006_PlaceholderValues extends BaseCheck
         'test',
         'dummy',
         'fake',
-        'null',
-        'none',
         'n/a',
     ];
 

@@ -46,6 +46,26 @@ class S001Test extends TestCase
         $this->assertTrue($results->isEmpty());
     }
 
+    public function test_aws_region_and_config_vars_are_not_sensitive(): void
+    {
+        // AWS config values that are not credentials should not trigger S001
+        $context = $this->makeContext([
+            'AWS_DEFAULT_REGION'          => 'us-east-1',
+            'AWS_USE_PATH_STYLE_ENDPOINT' => 'false',
+        ]);
+        $results = (new S001_SecretTooShort())->run($context);
+
+        $this->assertTrue($results->isEmpty(), 'AWS region and config flags should not be length-checked');
+    }
+
+    public function test_aws_credentials_are_still_sensitive(): void
+    {
+        $context = $this->makeContext(['AWS_ACCESS_KEY_ID' => 'short']);
+        $results = (new S001_SecretTooShort())->run($context);
+
+        $this->assertSame(1, $results->count());
+    }
+
     public function test_strips_base64_prefix_before_length_check(): void
     {
         // base64: + 5 chars = 12 total, but real length is 5 < 16

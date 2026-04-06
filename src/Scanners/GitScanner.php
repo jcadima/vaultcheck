@@ -90,6 +90,9 @@ class GitScanner
             $configHashes[$hash] = true;
             $lines = $this->getAddedLinesFromCommit($projectPath, $hash);
             foreach ($lines as $lineData) {
+                if (!str_starts_with($lineData['file'], 'config/')) {
+                    continue;
+                }
                 // Run pattern scan on config lines
                 $matches = $this->patternRegistry->scan($lineData['line'], $lineData['commit'], $lineData['file']);
                 foreach ($matches as $match) {

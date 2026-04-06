@@ -23,7 +23,7 @@ class C003_NoDefaultValue extends BaseCheck
 
         foreach ($context->codebaseRefs as $key => $usages) {
             foreach ($usages as $usage) {
-                if (!$usage['hasDefault'] && !isset($reported[$key])) {
+                if (!$usage['hasDefault'] && !isset($reported[$key]) && !array_key_exists($key, $context->envVars)) {
                     $reported[$key] = true;
                     $col->add($this->finding(
                         'C003',
