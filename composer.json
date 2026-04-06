@@ -1,5 +1,5 @@
 {
-    "name": "vaultcheck/vaultcheck",
+    "name": "jcadima/vaultcheck",
     "description": "CLI tool to audit secrets and environment variable hygiene across a project",
     "type": "library",
     "keywords": ["security", "secrets", "env", "audit", "cli"],
