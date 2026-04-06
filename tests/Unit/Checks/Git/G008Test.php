@@ -43,6 +43,26 @@ class G008Test extends TestCase
         $this->assertStringContainsString('API_SECRET', $findings[0]->message);
     }
 
+    public function test_does_not_fire_for_non_sensitive_config_keys(): void
+    {
+        $git = new GitScanResult();
+        $git->gitPresent              = true;
+        $git->currentSecretsInHistory = [
+            'SESSION_DRIVER'        => true,
+            'CACHE_STORE'           => true,
+            'REDIS_HOST'            => true,
+            'REDIS_CLIENT'          => true,
+            'MAIL_FROM_ADDRESS'     => true,
+            'APP_MAINTENANCE_STORE' => true,
+            'MEMCACHED_HOST'        => true,
+        ];
+
+        $context = $this->makeContext($git);
+        $results = (new G008_UnrotatedLeak())->run($context);
+
+        $this->assertTrue($results->isEmpty(), 'G008 should not fire for non-secret config keys');
+    }
+
     public function test_clean_when_no_unrotated_secrets(): void
     {
         $git = new GitScanResult();

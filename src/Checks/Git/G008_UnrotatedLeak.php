@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace VaultCheck\Checks\Git;
 
 use VaultCheck\Checks\BaseCheck;
+use VaultCheck\Checks\Strength\StrengthHelper;
 use VaultCheck\Engine\FindingCollection;
 use VaultCheck\Engine\Finding;
 use VaultCheck\Engine\ScanContext;
@@ -18,9 +19,13 @@ use VaultCheck\Engine\ScanContext;
  *
  * This is a CRITICAL finding because the credential has been compromised
  * AND has not been rotated. One finding per affected key.
+ *
+ * Only fires for sensitive keys (credentials, tokens, passwords) — config
+ * values like SESSION_DRIVER or REDIS_HOST are intentionally excluded.
  */
 class G008_UnrotatedLeak extends BaseCheck
 {
+    use StrengthHelper;
     public function isApplicable(ScanContext $context): bool
     {
         return $context->gitScanResult?->gitPresent ?? false;
@@ -35,6 +40,9 @@ class G008_UnrotatedLeak extends BaseCheck
 
         $findings = [];
         foreach (array_keys($leaked) as $key) {
+            if (!$this->isSensitiveKey($key)) {
+                continue; // config values are not credentials — skip
+            }
             $findings[] = $this->finding(
                 checkId: 'G008',
                 severity: Finding::SEVERITY_CRITICAL,
