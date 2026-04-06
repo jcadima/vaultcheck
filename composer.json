@@ -1,0 +1,47 @@
+{
+    "name": "vaultcheck/vaultcheck",
+    "description": "CLI tool to audit secrets and environment variable hygiene across a project",
+    "type": "library",
+    "keywords": ["security", "secrets", "env", "audit", "cli"],
+    "license": "MIT",
+    "homepage": "https://github.com/jcadima/vaultcheck",
+    "authors": [
+        {
+            "name": "Juan Cadima",
+            "email": "juanjcadima@gmail.com",
+            "role": "Software Developer"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/jcadima/vaultcheck/issues",
+        "source": "https://github.com/jcadima/vaultcheck"
+    },
+    "require": {
+        "php": "^8.2",
+        "symfony/console": "^7.0",
+        "symfony/process": "^7.0",
+        "symfony/filesystem": "^7.0",
+        "symfony/finder": "^7.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "VaultCheck\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "VaultCheck\\Tests\\": "tests/"
+        }
+    },
+    "bin": ["bin/vaultcheck"],
+    "config": {
+        "sort-packages": true,
+        "optimize-autoloader": true
+    },
+    "scripts": {
+        "test": "phpunit --colors=always"
+    }
+}

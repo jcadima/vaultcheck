@@ -1,0 +1,7 @@
+/vendor/
+/diagrams/
+/docs/
+composer.lock
+.env
+*.log
+tests/fixtures/git-project/.git

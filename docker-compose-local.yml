@@ -1,0 +1,16 @@
+services:
+  vaultcheck:
+    build:
+      args:
+        user: admin
+        uid: 1000
+      context: ./
+      dockerfile: Dockerfile
+    container_name: vaultcheck
+    restart: "no"
+    working_dir: /var/www
+    command: tail -f /dev/null
+    volumes:
+      - ./:/var/www
+    environment:
+      - APP_ENV=local
