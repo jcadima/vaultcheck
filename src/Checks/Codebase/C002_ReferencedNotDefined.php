@@ -22,14 +22,22 @@ class C002_ReferencedNotDefined extends BaseCheck
 
         foreach ($context->codebaseRefs as $key => $usages) {
             if (!array_key_exists($key, $context->envVars)) {
-                // If every call site has a fallback default, the app won't crash — downgrade to MEDIUM.
-                // If any call site lacks a default, the variable is genuinely required — keep HIGH.
                 $allHaveDefaults = array_reduce(
                     $usages,
                     fn(bool $carry, array $u) => $carry && $u['hasDefault'],
                     true
                 );
-                $severity   = $allHaveDefaults ? Finding::SEVERITY_MEDIUM : Finding::SEVERITY_HIGH;
+                $configOnly = $this->isConfigOnly($usages);
+
+                // Framework config files (config/*.php) legitimately reference optional env vars
+                // for integrations most projects don't use. Treat these as lower priority.
+                $severity = match(true) {
+                    $configOnly && $allHaveDefaults  => Finding::SEVERITY_LOW,
+                    $configOnly && !$allHaveDefaults => Finding::SEVERITY_MEDIUM,
+                    !$configOnly && $allHaveDefaults => Finding::SEVERITY_MEDIUM,
+                    default                          => Finding::SEVERITY_HIGH,
+                };
+
                 $firstUsage = $usages[0];
                 $col->add($this->finding(
                     'C002',
@@ -43,5 +51,15 @@ class C002_ReferencedNotDefined extends BaseCheck
         }
 
         return $col;
+    }
+
+    private function isConfigOnly(array $usages): bool
+    {
+        foreach ($usages as $u) {
+            if (!str_starts_with($u['file'], 'config/')) {
+                return false;
+            }
+        }
+        return true;
     }
 }

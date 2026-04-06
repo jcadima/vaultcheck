@@ -12,7 +12,7 @@ use VaultCheck\Commands\AuditCommand;
 /**
  * Integration test: run the full audit command against the dirty-project fixture.
  *
- * dirty-project is intentionally misconfigured to trigger 43 findings across all
+ * dirty-project is intentionally misconfigured to trigger 41 findings across all
  * categories (E, C, P, X, S). With --skip-history, git checks don't run.
  */
 class DirtyProjectAuditTest extends TestCase
@@ -24,14 +24,14 @@ class DirtyProjectAuditTest extends TestCase
         $this->fixturePath = dirname(__DIR__) . '/fixtures/dirty-project';
     }
 
-    public function test_audit_produces_43_findings_on_dirty_project(): void
+    public function test_audit_produces_41_findings_on_dirty_project(): void
     {
         $output = $this->runAudit($this->fixturePath, ['--skip-history' => true]);
 
         $this->assertSame(
-            43,
+            41,
             $output['total'],
-            'dirty-project should produce exactly 43 findings with --skip-history. ' .
+            'dirty-project should produce exactly 41 findings with --skip-history. ' .
             'Found check IDs: ' . implode(', ', array_column($output['findings'], 'check_id'))
         );
     }
@@ -63,8 +63,8 @@ class DirtyProjectAuditTest extends TestCase
         $output = $this->runAudit($this->fixturePath, ['--skip-history' => true]);
 
         $this->assertSame(2,  $output['by_severity']['CRITICAL'], 'Expected 2 CRITICAL findings');
-        $this->assertSame(7,  $output['by_severity']['HIGH'],     'Expected 7 HIGH findings');
-        $this->assertSame(19, $output['by_severity']['MEDIUM'],   'Expected 19 MEDIUM findings');
+        $this->assertSame(6,  $output['by_severity']['HIGH'],     'Expected 6 HIGH findings');
+        $this->assertSame(18, $output['by_severity']['MEDIUM'],   'Expected 18 MEDIUM findings');
         $this->assertSame(15, $output['by_severity']['LOW'],      'Expected 15 LOW findings');
     }
 

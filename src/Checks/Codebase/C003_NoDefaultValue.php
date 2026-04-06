@@ -24,6 +24,10 @@ class C003_NoDefaultValue extends BaseCheck
         foreach ($context->codebaseRefs as $key => $usages) {
             foreach ($usages as $usage) {
                 if (!$usage['hasDefault'] && !isset($reported[$key]) && !array_key_exists($key, $context->envVars)) {
+                    // Framework config files intentionally reference optional env vars — skip silently.
+                    if ($this->isConfigOnly($usages)) {
+                        break;
+                    }
                     $reported[$key] = true;
                     $col->add($this->finding(
                         'C003',
@@ -38,5 +42,15 @@ class C003_NoDefaultValue extends BaseCheck
         }
 
         return $col;
+    }
+
+    private function isConfigOnly(array $usages): bool
+    {
+        foreach ($usages as $u) {
+            if (!str_starts_with($u['file'], 'config/')) {
+                return false;
+            }
+        }
+        return true;
     }
 }

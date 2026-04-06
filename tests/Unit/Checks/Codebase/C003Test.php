@@ -67,6 +67,27 @@ class C003Test extends TestCase
         $this->assertTrue($results->isEmpty(), 'C003 should not fire when key is already in .env');
     }
 
+    public function test_silent_when_all_usages_are_in_config_files(): void
+    {
+        $context = $this->makeContext([
+            'MEMCACHED_HOST'    => [['file' => 'config/cache.php',   'line' => 30, 'hasDefault' => false]],
+            'DYNAMODB_TABLE'    => [['file' => 'config/session.php', 'line' => 14, 'hasDefault' => false]],
+        ]);
+        $results = (new C003_NoDefaultValue())->run($context);
+
+        $this->assertTrue($results->isEmpty(), 'C003 should not fire for config-only usages of optional framework vars');
+    }
+
+    public function test_fires_when_app_code_lacks_default(): void
+    {
+        $context = $this->makeContext([
+            'PAYMENT_KEY' => [['file' => 'app/Billing/PaymentService.php', 'line' => 8, 'hasDefault' => false]],
+        ]);
+        $results = (new C003_NoDefaultValue())->run($context);
+
+        $this->assertSame(1, $results->count());
+    }
+
     private function makeContext(array $codebaseRefs): ScanContext
     {
         return new ScanContext(
