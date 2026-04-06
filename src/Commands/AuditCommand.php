@@ -10,7 +10,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use VaultCheck\Parsers\EnvFileParser;
+use VaultCheck\Engine\Finding;
 use VaultCheck\Reporters\CliReporter;
 use VaultCheck\Reporters\JsonReporter;
 use VaultCheck\Reporters\MarkdownReporter;
@@ -32,7 +32,8 @@ class AuditCommand extends Command
             ->addOption('output', 'o', InputOption::VALUE_REQUIRED, 'Output format: cli, json, markdown', 'cli')
             ->addOption('strict', null, InputOption::VALUE_NONE, 'Exit with code 1 if any MEDIUM or higher finding exists')
             ->addOption('skip-history', null, InputOption::VALUE_NONE, 'Skip git history scanning')
-            ->addOption('full-history', null, InputOption::VALUE_NONE, 'Scan entire git history (default: last 500 commits)');
+            ->addOption('full-history', null, InputOption::VALUE_NONE, 'Scan entire git history (default: last 500 commits)')
+            ->addOption('min-severity', null, InputOption::VALUE_REQUIRED, 'Only show findings at this severity or above (CRITICAL, HIGH, MEDIUM, LOW, INFO)', 'INFO');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -42,21 +43,28 @@ class AuditCommand extends Command
         $strict       = (bool) $input->getOption('strict');
         $skipHistory  = (bool) $input->getOption('skip-history');
         $fullHistory  = (bool) $input->getOption('full-history');
+        $minSeverity  = strtoupper((string) ($input->getOption('min-severity') ?? 'INFO'));
 
         if (!is_dir($projectPath)) {
             $output->writeln("<error>Path does not exist: {$projectPath}</error>");
             return Command::FAILURE;
         }
 
+        if (!Finding::isValidSeverity($minSeverity)) {
+            $output->writeln("<error>Invalid --min-severity value '{$minSeverity}'. Valid: CRITICAL, HIGH, MEDIUM, LOW, INFO</error>");
+            return Command::FAILURE;
+        }
+
         $context  = $this->buildContext($projectPath, $skipHistory, $fullHistory);
-        $parser   = new EnvFileParser();
         $engine   = $this->buildEngine();
         $findings = $engine->run($context);
 
+        $displayed = $minSeverity !== 'INFO' ? $findings->filterMinSeverity($minSeverity) : $findings;
+
         match ($outputFormat) {
-            'json'     => (new JsonReporter())->report($findings, $output, $projectPath),
-            'markdown' => (new MarkdownReporter())->report($findings, $output, $projectPath),
-            default    => (new CliReporter())->report($findings, $output),
+            'json'     => (new JsonReporter())->report($displayed, $output, $projectPath),
+            'markdown' => (new MarkdownReporter())->report($displayed, $output, $projectPath),
+            default    => (new CliReporter())->report($displayed, $output),
         };
 
         if ($strict && $findings->hasMediumOrAbove()) {

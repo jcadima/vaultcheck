@@ -81,6 +81,25 @@ class FindingCollectionTest extends TestCase
         $this->assertFalse($col->hasMediumOrAbove());
     }
 
+    public function test_filter_min_severity_returns_at_or_above_threshold(): void
+    {
+        $col = new FindingCollection();
+        $col->add(new Finding('E001', Finding::SEVERITY_CRITICAL, 'critical'));
+        $col->add(new Finding('E002', Finding::SEVERITY_HIGH,     'high'));
+        $col->add(new Finding('E003', Finding::SEVERITY_MEDIUM,   'medium'));
+        $col->add(new Finding('E004', Finding::SEVERITY_LOW,      'low'));
+        $col->add(new Finding('E005', Finding::SEVERITY_INFO,     'info'));
+
+        $result = $col->filterMinSeverity(Finding::SEVERITY_HIGH);
+
+        $this->assertSame(2, $result->count());
+        $severities = array_column(iterator_to_array($result->getIterator()), 'severity');
+        $this->assertContains('CRITICAL', $severities);
+        $this->assertContains('HIGH',     $severities);
+        $this->assertNotContains('MEDIUM', $severities);
+        $this->assertNotContains('LOW',    $severities);
+    }
+
     public function test_to_array_serialises_all_findings(): void
     {
         $col = new FindingCollection();

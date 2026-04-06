@@ -51,6 +51,18 @@ class FindingCollection implements \Countable, \IteratorAggregate
         return $filtered;
     }
 
+    public function filterMinSeverity(string $minSeverity): self
+    {
+        $minScore = Finding::scoreFor($minSeverity);
+        $filtered = new self();
+        foreach ($this->findings as $finding) {
+            if ($finding->severityScore() >= $minScore) {
+                $filtered->add($finding);
+            }
+        }
+        return $filtered;
+    }
+
     public function isEmpty(): bool
     {
         return empty($this->findings);

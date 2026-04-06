@@ -63,7 +63,7 @@ class C002Test extends TestCase
         $this->assertSame(Finding::SEVERITY_HIGH, $findings[0]->severity);
     }
 
-    public function test_downgrades_to_medium_when_config_only_and_no_defaults(): void
+    public function test_downgrades_to_low_when_config_only_and_no_defaults(): void
     {
         $context = $this->makeContext(
             envVars:      [],
@@ -75,7 +75,7 @@ class C002Test extends TestCase
         $findings = iterator_to_array($results->getIterator());
 
         $this->assertSame(1, $results->count());
-        $this->assertSame(Finding::SEVERITY_MEDIUM, $findings[0]->severity);
+        $this->assertSame(Finding::SEVERITY_LOW, $findings[0]->severity);
     }
 
     public function test_downgrades_to_low_when_config_only_and_all_have_defaults(): void

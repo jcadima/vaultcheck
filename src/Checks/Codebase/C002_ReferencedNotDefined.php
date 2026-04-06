@@ -30,10 +30,9 @@ class C002_ReferencedNotDefined extends BaseCheck
                 $configOnly = $this->isConfigOnly($usages);
 
                 // Framework config files (config/*.php) legitimately reference optional env vars
-                // for integrations most projects don't use. Treat these as lower priority.
+                // for integrations most projects don't use. Treat all config-only refs as LOW.
                 $severity = match(true) {
-                    $configOnly && $allHaveDefaults  => Finding::SEVERITY_LOW,
-                    $configOnly && !$allHaveDefaults => Finding::SEVERITY_MEDIUM,
+                    $configOnly                      => Finding::SEVERITY_LOW,
                     !$configOnly && $allHaveDefaults => Finding::SEVERITY_MEDIUM,
                     default                          => Finding::SEVERITY_HIGH,
                 };

@@ -86,7 +86,15 @@ vaultcheck audit --skip-history
 
 # Scan entire git history instead of just the last 500 commits
 vaultcheck audit --full-history
+
+# Only show HIGH and CRITICAL findings (hides config-level noise)
+vaultcheck audit --min-severity=HIGH
+
+# Focus only on critical issues
+vaultcheck audit --min-severity=CRITICAL
 ```
+
+Valid values for `--min-severity`: `CRITICAL`, `HIGH`, `MEDIUM`, `LOW`, `INFO` (default: `INFO` — show all findings).
 
 ### `vaultcheck keys` : List all environment variables and their status
 
@@ -204,8 +212,8 @@ The `--strict` flag causes the process to exit with code `1` if any `MEDIUM` or 
 | ID | Severity | What it catches |
 |----|----------|----------------|
 | C001 | LOW | Env var defined in `.env` but never referenced in code |
-| C002 | HIGH | Code calls `env('KEY')` for an undefined key |
-| C003 | MEDIUM | `env('KEY')` called without a fallback default |
+| C002 | HIGH / MEDIUM / LOW | Code calls `env('KEY')` for a key not defined in `.env`. Severity depends on call origin: **HIGH** when application code (e.g. `app/`) has no fallback default; **MEDIUM** when application code has a fallback default; **LOW** when only `config/` files reference it (optional framework integrations). |
+| C003 | MEDIUM | `env('KEY')` called without a fallback default in application code. Calls originating only from `config/` files are suppressed — Laravel framework configs intentionally omit defaults for optional integrations. |
 | C004 | MEDIUM | `env()` called outside a `config/` file (breaks `config:cache`) |
 | C005 | LOW | Casing mismatch between `.env` key and `env()` call |
 

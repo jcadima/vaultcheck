@@ -34,6 +34,16 @@ class Finding
         return self::$severityOrder[$this->severity] ?? 0;
     }
 
+    public static function scoreFor(string $severity): int
+    {
+        return self::$severityOrder[$severity] ?? 0;
+    }
+
+    public static function isValidSeverity(string $severity): bool
+    {
+        return isset(self::$severityOrder[$severity]);
+    }
+
     public function isMediumOrAbove(): bool
     {
         return $this->severityScore() >= self::$severityOrder[self::SEVERITY_MEDIUM];

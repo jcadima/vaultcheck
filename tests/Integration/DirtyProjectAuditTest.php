@@ -6,6 +6,7 @@ namespace VaultCheck\Tests\Integration;
 
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
 use VaultCheck\Commands\AuditCommand;
 
@@ -66,6 +67,35 @@ class DirtyProjectAuditTest extends TestCase
         $this->assertSame(6,  $output['by_severity']['HIGH'],     'Expected 6 HIGH findings');
         $this->assertSame(18, $output['by_severity']['MEDIUM'],   'Expected 18 MEDIUM findings');
         $this->assertSame(15, $output['by_severity']['LOW'],      'Expected 15 LOW findings');
+    }
+
+    public function test_min_severity_high_hides_medium_and_low(): void
+    {
+        $output   = $this->runAudit($this->fixturePath, ['--skip-history' => true, '--min-severity' => 'HIGH']);
+        $findings = $output['findings'];
+
+        foreach ($findings as $finding) {
+            $this->assertNotContains($finding['severity'], ['MEDIUM', 'LOW', 'INFO'],
+                "Finding {$finding['check_id']} with severity {$finding['severity']} should be hidden by --min-severity=HIGH");
+        }
+        $this->assertGreaterThan(0, count($findings), 'Should still have CRITICAL/HIGH findings');
+    }
+
+    public function test_min_severity_invalid_value_is_rejected(): void
+    {
+        $app = new Application();
+        $app->add(new AuditCommand());
+        $command = $app->find('audit');
+        $tester  = new CommandTester($command);
+
+        $exitCode = $tester->execute([
+            'path'           => $this->fixturePath,
+            '--min-severity' => 'BOGUS',
+            '--output'       => 'json',
+        ]);
+
+        $this->assertSame(Command::FAILURE, $exitCode);
+        $this->assertStringContainsString('Invalid --min-severity', $tester->getDisplay());
     }
 
     private function runAudit(string $path, array $options = []): array
