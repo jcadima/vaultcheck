@@ -104,6 +104,11 @@ class EntropyScanner
             }
         }
 
+        // npm/yarn package integrity hashes: sha512-<base64>, sha256-<base64>, sha1-<base64>
+        if (preg_match('/^sha\d+-[A-Za-z0-9+\/=]+$/', $token)) {
+            return true;
+        }
+
         return false;
     }
 

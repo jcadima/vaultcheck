@@ -75,7 +75,9 @@ class GitScanner
             $processedHashes[$hash] = true;
             $lines = $this->getAddedLinesFromCommit($projectPath, $hash);
             foreach ($lines as $lineData) {
-                $allAddedLines[] = $lineData;
+                if (str_starts_with($lineData['file'], '.env')) {
+                    $allAddedLines[] = $lineData;
+                }
             }
         }
 
@@ -104,6 +106,7 @@ class GitScanner
         }
 
         // G002 + G003: run pattern and entropy scans on all .env* added lines
+        $seenEntropyTokens = [];
         foreach ($allAddedLines as $lineData) {
             $line   = $lineData['line'];
             $commit = $lineData['commit'];
@@ -115,14 +118,15 @@ class GitScanner
                 $result->patternMatches[] = $match;
             }
 
-            // G003: entropy scanning
+            // G003: entropy scanning — deduplicated by token value across all commits
             $tokens = $this->entropyScanner->extractTokens($line);
             foreach ($tokens as $token) {
                 if ($this->entropyScanner->isKnownSafe($token)) {
                     continue;
                 }
                 $entropy = $this->entropyScanner->calculate($token);
-                if ($entropy >= EntropyScanner::ENTROPY_THRESHOLD) {
+                if ($entropy >= EntropyScanner::ENTROPY_THRESHOLD && !isset($seenEntropyTokens[$token])) {
+                    $seenEntropyTokens[$token] = true;
                     $result->entropyMatches[] = [
                         'redacted' => $this->entropyScanner->redact($token),
                         'entropy'  => round($entropy, 2),
