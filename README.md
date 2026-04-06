@@ -30,13 +30,13 @@ A PHP CLI tool that audits environment variable and secrets hygiene across your 
 
 **Via Composer (recommended):**
 ```bash
-composer global require vaultcheck/vaultcheck
+composer global require jcadima/vaultcheck
 vaultcheck audit /path/to/your/project
 ```
 
 **Via Docker Compose (local build):**
 ```bash
-git clone https://github.com/vaultcheck/vaultcheck.git
+git clone https://github.com/jcadima/vaultcheck.git
 cd vaultcheck
 
 # Build and start the container
@@ -54,7 +54,7 @@ docker compose -f docker-compose-local.yml down
 
 **From source:**
 ```bash
-git clone https://github.com/vaultcheck/vaultcheck.git
+git clone https://github.com/jcadima/vaultcheck.git
 cd vaultcheck && composer install
 php bin/vaultcheck audit /path/to/your/project
 ```
@@ -169,7 +169,7 @@ Add VaultCheck to your pipeline to block deployments if secrets hygiene regresse
 # GitHub Actions example
 - name: Audit secrets hygiene
   run: |
-    composer global require vaultcheck/vaultcheck
+    composer global require jcadima/vaultcheck
     vaultcheck audit --strict --skip-history
 ```
 
