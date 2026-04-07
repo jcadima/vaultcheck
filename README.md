@@ -31,6 +31,28 @@ A PHP CLI tool that audits environment variable and secrets hygiene across your 
 **Via Composer (recommended):**
 ```bash
 composer global require jcadima/vaultcheck
+```
+
+After install, make sure Composer's global `bin/` directory is in your `$PATH`. The directory differs between Composer v1 and v2, so let Composer resolve it for you:
+
+```bash
+# Works for both Composer v1 and v2 — detects the correct bin dir automatically
+echo "export PATH=\"\$PATH:$(composer global config bin-dir 2>/dev/null)\"" >> ~/.bashrc
+source ~/.bashrc
+```
+
+If you use **zsh**, replace `~/.bashrc` with `~/.zshrc`.
+
+**VPS / server alternative — symlink to `/usr/local/bin` (no shell profile changes needed):**
+```bash
+sudo ln -sf "$(composer global config bin-dir)/vaultcheck" /usr/local/bin/vaultcheck
+```
+
+This makes `vaultcheck` available to all users and works in cron jobs, scripts, and CI pipelines without any PATH configuration.
+
+Verify the install:
+```bash
+vaultcheck --version
 vaultcheck audit /path/to/your/project
 ```
 
