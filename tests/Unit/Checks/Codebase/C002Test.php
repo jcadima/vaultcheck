@@ -93,6 +93,22 @@ class C002Test extends TestCase
         $this->assertSame(Finding::SEVERITY_LOW, $findings[0]->severity);
     }
 
+    public function test_downgrades_to_low_with_absolute_config_path(): void
+    {
+        // Real-world paths from CodebaseScanner use absolute paths via getRealPath()
+        $context = $this->makeContext(
+            envVars:      [],
+            codebaseRefs: [
+                'MEMCACHED_HOST' => [['file' => '/var/www/html/config/cache.php', 'line' => 30, 'hasDefault' => false]],
+            ],
+        );
+        $results  = (new C002_ReferencedNotDefined())->run($context);
+        $findings = iterator_to_array($results->getIterator());
+
+        $this->assertSame(1, $results->count());
+        $this->assertSame(Finding::SEVERITY_LOW, $findings[0]->severity);
+    }
+
     public function test_clean_when_all_referenced_vars_defined(): void
     {
         $context = $this->makeContext(

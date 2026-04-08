@@ -20,13 +20,25 @@ class CliReporter
         Finding::SEVERITY_INFO     => 'gray',
     ];
 
-    public function report(FindingCollection $findings, OutputInterface $output): void
-    {
-        $sorted = $findings->sortBySeverity();
+    public function report(
+        FindingCollection  $findings,
+        OutputInterface    $output,
+        ?FindingCollection $allFindings = null,
+    ): void {
+        $sorted  = $findings->sortBySeverity();
+        $hidden  = $allFindings !== null ? count($allFindings) - count($findings) : 0;
 
         if ($sorted->isEmpty()) {
             $output->writeln('');
-            $output->writeln('<fg=green;options=bold> ✓ No findings. Your environment looks clean.</> ');
+            if ($hidden > 0) {
+                $output->writeln('<fg=green;options=bold> ✓ No CRITICAL or HIGH findings.</> ');
+                $output->writeln(sprintf(
+                    '   <fg=gray>%d lower-severity finding(s) not shown — run with --min-severity=MEDIUM to review.</>',
+                    $hidden,
+                ));
+            } else {
+                $output->writeln('<fg=green;options=bold> ✓ No findings. Your environment looks clean.</> ');
+            }
             $output->writeln('');
             return;
         }
@@ -39,7 +51,7 @@ class CliReporter
             $this->renderFinding($finding, $output);
         }
 
-        $this->renderSummary($sorted, $output);
+        $this->renderSummary($sorted, $output, $hidden, $allFindings);
     }
 
     private function renderFinding(Finding $finding, OutputInterface $output): void
@@ -66,8 +78,12 @@ class CliReporter
         $output->writeln('');
     }
 
-    private function renderSummary(FindingCollection $findings, OutputInterface $output): void
-    {
+    private function renderSummary(
+        FindingCollection  $findings,
+        OutputInterface    $output,
+        int                $hidden = 0,
+        ?FindingCollection $allFindings = null,
+    ): void {
         $counts = [
             Finding::SEVERITY_CRITICAL => 0,
             Finding::SEVERITY_HIGH     => 0,
@@ -93,6 +109,26 @@ class CliReporter
                 $count,
             ));
         }
+
+        if ($hidden > 0 && $allFindings !== null) {
+            $allCounts = array_fill_keys(array_keys($counts), 0);
+            foreach ($allFindings as $f) {
+                $allCounts[$f->severity]++;
+            }
+            $parts = [];
+            foreach ($allCounts as $severity => $total) {
+                $diff = $total - ($counts[$severity] ?? 0);
+                if ($diff > 0) {
+                    $parts[] = "{$severity}: {$diff}";
+                }
+            }
+            $output->writeln(sprintf(
+                '  <fg=gray>+ %d finding(s) not shown (%s). Use --min-severity=MEDIUM to see more.</>',
+                $hidden,
+                implode(', ', $parts),
+            ));
+        }
+
         $output->writeln('');
     }
 }

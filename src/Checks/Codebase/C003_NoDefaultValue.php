@@ -47,7 +47,8 @@ class C003_NoDefaultValue extends BaseCheck
     private function isConfigOnly(array $usages): bool
     {
         foreach ($usages as $u) {
-            if (!str_starts_with($u['file'], 'config/')) {
+            $file = str_replace('\\', '/', $u['file']);
+            if (!str_contains($file, '/config/') && !str_starts_with($file, 'config/')) {
                 return false;
             }
         }

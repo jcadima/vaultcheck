@@ -109,14 +109,16 @@ vaultcheck audit --skip-history
 # Scan entire git history instead of just the last 500 commits
 vaultcheck audit --full-history
 
-# Only show HIGH and CRITICAL findings (hides config-level noise)
-vaultcheck audit --min-severity=HIGH
+# Reveal MEDIUM findings too (e.g. missing keys in .env.example, short secrets)
+vaultcheck audit --min-severity=MEDIUM
 
-# Focus only on critical issues
-vaultcheck audit --min-severity=CRITICAL
+# Show everything including LOW-priority items
+vaultcheck audit --min-severity=LOW
 ```
 
-Valid values for `--min-severity`: `CRITICAL`, `HIGH`, `MEDIUM`, `LOW`, `INFO` (default: `INFO` — show all findings).
+By default, only `CRITICAL` and `HIGH` findings are shown — these are the genuine red flags that need immediate attention. Lower-severity findings are still detected and a count is displayed at the bottom with instructions to reveal them.
+
+Valid values for `--min-severity`: `CRITICAL`, `HIGH` *(default)*, `MEDIUM`, `LOW`, `INFO`.
 
 ### `vaultcheck keys` : List all environment variables and their status
 

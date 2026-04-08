@@ -33,7 +33,7 @@ class AuditCommand extends Command
             ->addOption('strict', null, InputOption::VALUE_NONE, 'Exit with code 1 if any MEDIUM or higher finding exists')
             ->addOption('skip-history', null, InputOption::VALUE_NONE, 'Skip git history scanning')
             ->addOption('full-history', null, InputOption::VALUE_NONE, 'Scan entire git history (default: last 500 commits)')
-            ->addOption('min-severity', null, InputOption::VALUE_REQUIRED, 'Only show findings at this severity or above (CRITICAL, HIGH, MEDIUM, LOW, INFO)', 'INFO');
+            ->addOption('min-severity', null, InputOption::VALUE_REQUIRED, 'Only show findings at this severity or above (CRITICAL, HIGH, MEDIUM, LOW, INFO) — default: HIGH', 'HIGH');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -43,7 +43,7 @@ class AuditCommand extends Command
         $strict       = (bool) $input->getOption('strict');
         $skipHistory  = (bool) $input->getOption('skip-history');
         $fullHistory  = (bool) $input->getOption('full-history');
-        $minSeverity  = strtoupper((string) ($input->getOption('min-severity') ?? 'INFO'));
+        $minSeverity  = strtoupper((string) ($input->getOption('min-severity') ?? 'HIGH'));
 
         if (!is_dir($projectPath)) {
             $output->writeln("<error>Path does not exist: {$projectPath}</error>");
@@ -59,12 +59,12 @@ class AuditCommand extends Command
         $engine   = $this->buildEngine();
         $findings = $engine->run($context);
 
-        $displayed = $minSeverity !== 'INFO' ? $findings->filterMinSeverity($minSeverity) : $findings;
+        $displayed = $findings->filterMinSeverity($minSeverity);
 
         match ($outputFormat) {
             'json'     => (new JsonReporter())->report($displayed, $output, $projectPath),
             'markdown' => (new MarkdownReporter())->report($displayed, $output, $projectPath),
-            default    => (new CliReporter())->report($displayed, $output),
+            default    => (new CliReporter())->report($displayed, $output, $findings),
         };
 
         if ($strict && $findings->hasMediumOrAbove()) {

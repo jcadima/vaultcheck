@@ -116,8 +116,9 @@ class GitProjectAuditTest extends TestCase
 
         $tester = new CommandTester($command);
         $tester->execute(array_merge([
-            'path'     => $path,
-            '--output' => 'json',
+            'path'           => $path,
+            '--output'       => 'json',
+            '--min-severity' => 'LOW',   // tests always inspect full output
         ], $options));
 
         $decoded = json_decode($tester->getDisplay(), true);

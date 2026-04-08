@@ -78,6 +78,17 @@ class C003Test extends TestCase
         $this->assertTrue($results->isEmpty(), 'C003 should not fire for config-only usages of optional framework vars');
     }
 
+    public function test_silent_with_absolute_config_path(): void
+    {
+        // Real-world paths from CodebaseScanner use absolute paths via getRealPath()
+        $context = $this->makeContext([
+            'MEMCACHED_HOST' => [['file' => '/var/www/html/config/cache.php', 'line' => 30, 'hasDefault' => false]],
+        ]);
+        $results = (new C003_NoDefaultValue())->run($context);
+
+        $this->assertTrue($results->isEmpty(), 'C003 should suppress absolute-path config-only usages');
+    }
+
     public function test_fires_when_app_code_lacks_default(): void
     {
         $context = $this->makeContext([

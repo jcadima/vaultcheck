@@ -37,6 +37,30 @@ class E003Test extends TestCase
         $this->assertSame(2, $results->count());
     }
 
+    public function test_sensitive_key_missing_from_example_is_medium(): void
+    {
+        $context = $this->makeContext(
+            envVars:     ['STRIPE_KEY' => 'sk_live_xxx'],
+            exampleVars: [],
+        );
+        $findings = iterator_to_array((new E003_ExampleDrift())->run($context)->getIterator());
+
+        $this->assertSame(1, count($findings));
+        $this->assertSame(Finding::SEVERITY_MEDIUM, $findings[0]->severity);
+    }
+
+    public function test_non_sensitive_key_missing_from_example_is_low(): void
+    {
+        $context = $this->makeContext(
+            envVars:     ['REDIS_DB' => '0'],
+            exampleVars: [],
+        );
+        $findings = iterator_to_array((new E003_ExampleDrift())->run($context)->getIterator());
+
+        $this->assertSame(1, count($findings));
+        $this->assertSame(Finding::SEVERITY_LOW, $findings[0]->severity);
+    }
+
     public function test_clean_when_all_env_keys_in_example(): void
     {
         $context = $this->makeContext(

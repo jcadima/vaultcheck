@@ -65,8 +65,8 @@ class DirtyProjectAuditTest extends TestCase
 
         $this->assertSame(2,  $output['by_severity']['CRITICAL'], 'Expected 2 CRITICAL findings');
         $this->assertSame(6,  $output['by_severity']['HIGH'],     'Expected 6 HIGH findings');
-        $this->assertSame(18, $output['by_severity']['MEDIUM'],   'Expected 18 MEDIUM findings');
-        $this->assertSame(15, $output['by_severity']['LOW'],      'Expected 15 LOW findings');
+        $this->assertSame(16, $output['by_severity']['MEDIUM'],   'Expected 16 MEDIUM findings');
+        $this->assertSame(17, $output['by_severity']['LOW'],      'Expected 17 LOW findings');
     }
 
     public function test_min_severity_high_hides_medium_and_low(): void
@@ -106,8 +106,9 @@ class DirtyProjectAuditTest extends TestCase
 
         $tester = new CommandTester($command);
         $tester->execute(array_merge([
-            'path'     => $path,
-            '--output' => 'json',
+            'path'           => $path,
+            '--output'       => 'json',
+            '--min-severity' => 'LOW',   // tests always inspect full output
         ], $options));
 
         $decoded = json_decode($tester->getDisplay(), true);
