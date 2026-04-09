@@ -48,4 +48,7 @@ class GitScanResult
      * Shape: [ 'ENV_KEY' => true ]
      */
     public array $currentSecretsInHistory = [];
+
+    /** Total number of commits examined during the history scan */
+    public int $commitsScanned = 0;
 }

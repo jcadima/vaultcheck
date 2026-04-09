@@ -9,6 +9,7 @@ use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Helper\TableStyle;
 use VaultCheck\Engine\Finding;
 use VaultCheck\Engine\FindingCollection;
+use VaultCheck\Engine\GitScanResult;
 
 class CliReporter
 {
@@ -24,12 +25,14 @@ class CliReporter
         FindingCollection  $findings,
         OutputInterface    $output,
         ?FindingCollection $allFindings = null,
+        ?GitScanResult     $gitScanResult = null,
     ): void {
         $sorted  = $findings->sortBySeverity();
         $hidden  = $allFindings !== null ? count($allFindings) - count($findings) : 0;
 
         if ($sorted->isEmpty()) {
             $output->writeln('');
+            $this->renderGitSummary($gitScanResult, $allFindings ?? $findings, $output);
             if ($hidden > 0) {
                 $output->writeln('<fg=green;options=bold> ✓ No CRITICAL or HIGH findings.</> ');
                 $output->writeln(sprintf(
@@ -46,12 +49,36 @@ class CliReporter
         $output->writeln('');
         $output->writeln(sprintf('<options=bold> VaultCheck — %d finding(s) </>', count($sorted)));
         $output->writeln('');
+        $this->renderGitSummary($gitScanResult, $allFindings ?? $findings, $output);
 
         foreach ($sorted as $finding) {
             $this->renderFinding($finding, $output);
         }
 
         $this->renderSummary($sorted, $output, $hidden, $allFindings);
+    }
+
+    private function renderGitSummary(
+        ?GitScanResult    $gitScanResult,
+        FindingCollection $allFindings,
+        OutputInterface   $output,
+    ): void {
+        if ($gitScanResult === null || $gitScanResult->commitsScanned === 0) {
+            return;
+        }
+
+        $gitIssues = count(array_filter(
+            iterator_to_array($allFindings),
+            fn(Finding $f) => str_starts_with($f->checkId, 'G'),
+        ));
+
+        $count   = number_format($gitScanResult->commitsScanned);
+        $summary = $gitIssues > 0
+            ? "{$gitIssues} issue(s) found"
+            : 'no issues found';
+
+        $output->writeln(sprintf(' <fg=gray>Git history: %s commits scanned, %s.</>', $count, $summary));
+        $output->writeln('');
     }
 
     private function renderFinding(Finding $finding, OutputInterface $output): void

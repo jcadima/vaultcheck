@@ -64,7 +64,7 @@ class AuditCommand extends Command
         match ($outputFormat) {
             'json'     => (new JsonReporter())->report($displayed, $output, $projectPath),
             'markdown' => (new MarkdownReporter())->report($displayed, $output, $projectPath),
-            default    => (new CliReporter())->report($displayed, $output, $findings),
+            default    => (new CliReporter())->report($displayed, $output, $findings, $context->gitScanResult),
         };
 
         if ($strict && $findings->hasMediumOrAbove()) {

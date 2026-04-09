@@ -49,6 +49,13 @@ class GitScanner
 
         $commitLimit = $fullHistory ? [] : ['--max-count=500'];
 
+        $countArgs = array_merge(['git', 'rev-list', '--count', '--all'], $commitLimit);
+        $countProc = new Process($countArgs, $projectPath);
+        $countProc->run();
+        if ($countProc->isSuccessful()) {
+            $result->commitsScanned = (int) trim($countProc->getOutput());
+        }
+
         // Collect all commit hashes that touched .env* or config/* files
         $envCommits    = $this->getCommitsTouchingPaths($projectPath, $commitLimit, ['.env', '.env.*', '.env.bak', '.env.backup', '.env.old']);
         $configCommits = $this->getCommitsTouchingPaths($projectPath, $commitLimit, ['config/']);
